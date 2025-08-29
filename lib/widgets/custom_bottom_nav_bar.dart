@@ -15,17 +15,30 @@ class CustomBottomNavBar extends StatelessWidget {
   static const double _barRadius = 42;
   static const double _horizontalMargin = 16;
   static const double _iconCircleDiameter = _barHeight;
- 
 
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final double barWidth = constraints.maxWidth - (_horizontalMargin * 2.5);
-        final double contentWidth = barWidth;
-        final double itemWidth = contentWidth / 4;
-        double baseLeft = _horizontalMargin + (itemWidth * currentIndex) + (itemWidth / 2) - (_iconCircleDiameter / 2);
-        double left = baseLeft - (currentIndex == 3 ? 14 : 18);
+        final double screenWidth = constraints.maxWidth;
+        final double barWidth = screenWidth - (_horizontalMargin * 2);
+        final double itemWidth = barWidth / 4;
+
+        // Адаптивное позиционирование кружка с точным выравниванием по краям
+        late final double circleLeft;
+
+        if (currentIndex == 0) {
+          // Первый элемент - кружок начинается с левого края
+          circleLeft = 0.0;
+        } else if (currentIndex == 3) {
+          // Последний элемент - кружок заканчивается у правого края
+          circleLeft = barWidth - _iconCircleDiameter;
+        } else {
+          // Средние элементы - точное центрирование
+          final double itemCenterOffset =
+              (itemWidth * currentIndex) + (itemWidth / 2);
+          circleLeft = itemCenterOffset - (_iconCircleDiameter / 2);
+        }
 
         return SizedBox(
           height: _barHeight + 20,
@@ -46,7 +59,10 @@ class CustomBottomNavBar extends StatelessWidget {
                       decoration: BoxDecoration(
                         color: AppColors.overlayBlue,
                         borderRadius: BorderRadius.circular(_barRadius),
-                        border: Border.all(color: AppColors.accentOrange, width: 2),
+                        border: Border.all(
+                          color: AppColors.accentOrange,
+                          width: 2,
+                        ),
                         boxShadow: const [
                           BoxShadow(
                             color: AppColors.shadow25,
@@ -61,7 +77,7 @@ class CustomBottomNavBar extends StatelessWidget {
                   AnimatedPositioned(
                     duration: const Duration(milliseconds: 380),
                     curve: Curves.easeInOut,
-                    left: left,
+                    left: circleLeft,
                     bottom: 0,
                     child: Container(
                       width: _iconCircleDiameter,
@@ -86,27 +102,30 @@ class CustomBottomNavBar extends StatelessWidget {
                             index: 0,
                             currentIndex: currentIndex,
                             onTap: onItemSelected,
-                            padding: const EdgeInsets.only(right: 5),
+                            alignment: Alignment.center,
+                            padding: const EdgeInsets.only(right: 15),
                           ),
                           _NavItem(
                             assetPath: 'assets/articles_icon.png',
                             index: 1,
                             currentIndex: currentIndex,
                             onTap: onItemSelected,
+                            alignment: Alignment.center,
                           ),
                           _NavItem(
                             assetPath: 'assets/game_icon.png',
                             index: 2,
                             currentIndex: currentIndex,
                             onTap: onItemSelected,
-                            padding: const EdgeInsets.only(right: 5),
+                            alignment: Alignment.center,
                           ),
                           _NavItem(
                             assetPath: 'assets/settings_icon.png',
                             index: 3,
                             currentIndex: currentIndex,
                             onTap: onItemSelected,
-                            padding: const EdgeInsets.only(left: 5),
+                            alignment: Alignment.center,
+                            padding: const EdgeInsets.only(left: 15),
                           ),
                         ],
                       ),
@@ -128,23 +147,27 @@ class _NavItem extends StatelessWidget {
     required this.index,
     required this.currentIndex,
     required this.onTap,
-     this.padding = EdgeInsets.zero,
+    this.alignment = Alignment.center,
+    this.padding = EdgeInsets.zero,
   });
-  final EdgeInsets padding;
+
   final String assetPath;
   final int index;
   final int currentIndex;
   final ValueChanged<int> onTap;
+  final Alignment alignment;
+  final EdgeInsets padding;
 
   @override
   Widget build(BuildContext context) {
     return Expanded(
-      child: Center(
-        child: InkResponse(
-          onTap: () => onTap(index),
-          radius: 32,
-          child: Padding(
-            padding: padding,
+      child: Padding(
+        padding: padding,
+        child: Align(
+          alignment: alignment,
+          child: InkResponse(
+            onTap: () => onTap(index),
+            radius: 32,
             child: Image.asset(
               assetPath,
               width: 60,
@@ -157,5 +180,3 @@ class _NavItem extends StatelessWidget {
     );
   }
 }
-
-
